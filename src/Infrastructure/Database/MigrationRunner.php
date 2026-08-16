@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IranLMS\Infrastructure\Database;
 
+use InvalidArgumentException;
 use IranLMS\Contracts\DatabaseMigrationInterface;
 
 final class MigrationRunner
@@ -45,6 +46,10 @@ final class MigrationRunner
 
     public function rollback(int $target_version): void
     {
+        if ($target_version < 0) {
+            throw new InvalidArgumentException('Target database version cannot be negative.');
+        }
+
         usort(
             $this->migrations,
             static fn (DatabaseMigrationInterface $a, DatabaseMigrationInterface $b): int =>
@@ -52,6 +57,10 @@ final class MigrationRunner
         );
 
         $current = $this->database->get_db_version();
+
+        if ($target_version >= $current) {
+            return;
+        }
 
         foreach ($this->migrations as $migration) {
             $version = $migration->get_version();
@@ -61,8 +70,8 @@ final class MigrationRunner
             }
 
             $migration->down();
-            $current = $target_version;
-            $this->database->set_db_version($current);
         }
+
+        $this->database->set_db_version($target_version);
     }
 }
