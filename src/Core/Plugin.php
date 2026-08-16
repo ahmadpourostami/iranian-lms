@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace IranLMS\Core;
 
+use IranLMS\Infrastructure\Database\DatabaseManager;
+use IranLMS\Modules\Courses\CoursesModule;
+
 final class Plugin {
     private static ?self $instance = null;
 
@@ -42,13 +45,9 @@ final class Plugin {
 
         $this->register_core_services();
         $this->register_modules();
+        $this->register_module_services();
         $this->modules->boot_all();
 
-        /**
-         * Fires after the Iran LMS application has been bootstrapped.
-         *
-         * @param Plugin $plugin Plugin application instance.
-         */
         do_action( 'iran_lms/booted', $this );
     }
 
@@ -61,15 +60,21 @@ final class Plugin {
     }
 
     private function register_core_services(): void {
-        // Shared Core services are registered here as their contracts are introduced.
+        $this->container->singleton(
+            DatabaseManager::class,
+            static fn (): DatabaseManager => new DatabaseManager()
+        );
     }
 
     private function register_modules(): void {
-        /**
-         * Allows modules to register themselves without modifying Core.
-         *
-         * @param ModuleRegistry $registry Module registry.
-         */
         do_action( 'iran_lms/register_modules', $this->modules );
+
+        if ( ! $this->modules->has( 'courses' ) ) {
+            $this->modules->register( new CoursesModule() );
+        }
+    }
+
+    private function register_module_services(): void {
+        do_action( 'iran_lms/register_services', $this->container );
     }
 }
