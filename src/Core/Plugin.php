@@ -11,6 +11,7 @@ namespace IranLMS\Core;
 
 use IranLMS\Infrastructure\Database\DatabaseManager;
 use IranLMS\Modules\Courses\CoursesModule;
+use RuntimeException;
 
 final class Plugin {
     private static ?self $instance = null;
@@ -60,9 +61,15 @@ final class Plugin {
     }
 
     private function register_core_services(): void {
+        global $wpdb;
+
+        if ( ! is_object( $wpdb ) ) {
+            throw new RuntimeException( 'WordPress database connection is unavailable.' );
+        }
+
         $this->container->singleton(
             DatabaseManager::class,
-            static fn (): DatabaseManager => new DatabaseManager()
+            static fn (): DatabaseManager => new DatabaseManager( $wpdb )
         );
     }
 
