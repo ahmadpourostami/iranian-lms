@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace IranLMS\Modules\Courses;
 
-use IranLMS\Contracts\CourseRepositoryInterface;
 use IranLMS\Contracts\ModuleInterface;
+use IranLMS\Core\Container;
+use IranLMS\Infrastructure\Database\DatabaseManager;
 use IranLMS\Modules\Courses\Repository\CourseRepository;
+use IranLMS\Modules\Courses\Service\CourseService;
 
 final class CoursesModule implements ModuleInterface
 {
@@ -22,22 +24,28 @@ final class CoursesModule implements ModuleInterface
 
     public function register(): void
     {
-        if (function_exists('add_filter')) {
-            add_filter('iran_lms/container_bindings', [$this, 'register_bindings']);
-        }
+        add_action('iran_lms/register_services', [$this, 'register_services']);
     }
 
     public function boot(): void
     {
-        // Course domain hooks and API routes are registered in their dedicated layers.
+        // Transport adapters and domain event subscribers are registered in their own layers.
     }
 
-    public function register_bindings(array $bindings): array
+    public function register_services(Container $container): void
     {
-        $bindings[CourseRepositoryInterface::class] = static fn ($container) => new CourseRepository(
-            $container->get(\IranLMS\Infrastructure\Database\DatabaseManager::class)
+        $container->singleton(
+            CourseRepository::class,
+            static fn (Container $container): CourseRepository => new CourseRepository(
+                $container->get(DatabaseManager::class)
+            )
         );
 
-        return $bindings;
+        $container->singleton(
+            CourseService::class,
+            static fn (Container $container): CourseService => new CourseService(
+                $container->get(CourseRepository::class)
+            )
+        );
     }
 }
