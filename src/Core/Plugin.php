@@ -14,7 +14,16 @@ final class Plugin {
 
     private bool $booted = false;
 
-    private function __construct() {}
+    private Container $container;
+    private ModuleRegistry $modules;
+
+    private function __construct() {
+        $this->container = new Container();
+        $this->modules   = new ModuleRegistry();
+
+        $this->container->instance( Container::class, $this->container );
+        $this->container->instance( ModuleRegistry::class, $this->modules );
+    }
 
     public static function instance(): self {
         if ( null === self::$instance ) {
@@ -31,7 +40,36 @@ final class Plugin {
 
         $this->booted = true;
 
-        // Core services and modules will be registered here as their
-        // implementation contracts are introduced.
+        $this->register_core_services();
+        $this->register_modules();
+        $this->modules->boot_all();
+
+        /**
+         * Fires after the Iran LMS application has been bootstrapped.
+         *
+         * @param Plugin $plugin Plugin application instance.
+         */
+        do_action( 'iran_lms/booted', $this );
+    }
+
+    public function container(): Container {
+        return $this->container;
+    }
+
+    public function modules(): ModuleRegistry {
+        return $this->modules;
+    }
+
+    private function register_core_services(): void {
+        // Shared Core services are registered here as their contracts are introduced.
+    }
+
+    private function register_modules(): void {
+        /**
+         * Allows modules to register themselves without modifying Core.
+         *
+         * @param ModuleRegistry $registry Module registry.
+         */
+        do_action( 'iran_lms/register_modules', $this->modules );
     }
 }
