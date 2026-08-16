@@ -23,17 +23,24 @@ final class AuthModule implements ModuleInterface
 
     public function register(): void
     {
-        // Auth services are registered by the module bootstrap.
+        add_action('iran_lms/register_services', [$this, 'register_services']);
     }
 
     public function boot(): void
     {
-        // API authentication middleware and routes will be added in the API layer.
+        // API authentication middleware and routes belong to the API layer.
     }
 
     public function register_services(Container $container): void
     {
-        $container->singleton(IdentityService::class, static fn () => new IdentityService());
-        $container->singleton(PasswordService::class, static fn () => new PasswordService());
+        $container->singleton(
+            IdentityService::class,
+            static fn (): IdentityService => new IdentityService()
+        );
+
+        $container->singleton(
+            PasswordService::class,
+            static fn (): PasswordService => new PasswordService()
+        );
     }
 }
