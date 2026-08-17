@@ -27,12 +27,13 @@ define('IRAN_LMS_FILE', __FILE__);
 define('IRAN_LMS_DIR', plugin_dir_path(__FILE__));
 define('IRAN_LMS_URL', plugin_dir_url(__FILE__));
 
-/**
- * Register application modules without coupling Core to business modules.
- */
 add_action('iran_lms/register_modules', static function ($registry): void {
     $registry->register(new \IranLMS\Modules\Auth\AuthModule());
     $registry->register(new \IranLMS\Modules\Courses\CoursesModule());
+});
+
+add_action('iran_lms/booted', static function ($plugin): void {
+    (new \IranLMS\API\ApiRegistrar($plugin->container()))->register();
 });
 
 function iran_lms_bootstrap(): void
