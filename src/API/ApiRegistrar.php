@@ -9,6 +9,7 @@ use IranLMS\API\Routes\AuthRoutes;
 use IranLMS\Core\Container;
 use IranLMS\Modules\Auth\Service\IdentityService;
 use IranLMS\Modules\Auth\Service\PasswordService;
+use IranLMS\Modules\Auth\Service\RefreshTokenService;
 use IranLMS\Modules\Auth\Service\SessionService;
 use IranLMS\Modules\Auth\Service\TokenManager;
 
@@ -22,6 +23,7 @@ final class ApiRegistrar
             $this->container->get(IdentityService::class),
             $this->container->get(PasswordService::class),
             $this->container->get(SessionService::class),
+            $this->container->get(RefreshTokenService::class),
             $this->container->get(TokenManager::class)
         );
 
