@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace IranLMS\Core;
 
 use IranLMS\Infrastructure\Database\DatabaseManager;
+use IranLMS\Infrastructure\Database\MigrationRunner;
 use RuntimeException;
 
 final class Plugin
@@ -72,6 +73,13 @@ final class Plugin
         $this->container->singleton(
             DatabaseManager::class,
             static fn (): DatabaseManager => new DatabaseManager($wpdb)
+        );
+
+        $this->container->singleton(
+            MigrationRunner::class,
+            fn (Container $container): MigrationRunner => new MigrationRunner(
+                $container->get(DatabaseManager::class)
+            )
         );
     }
 
