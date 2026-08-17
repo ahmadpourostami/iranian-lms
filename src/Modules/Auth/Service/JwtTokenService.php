@@ -24,6 +24,7 @@ final class JwtTokenService implements TokenServiceInterface
             'sub' => $user_id,
             'iat' => $now,
             'exp' => $now + self::ACCESS_TOKEN_TTL,
+            'jti' => wp_generate_uuid4(),
         ], $claims);
 
         return JWT::encode($payload, $this->secret(), self::ALGORITHM);
@@ -44,7 +45,7 @@ final class JwtTokenService implements TokenServiceInterface
             throw new RuntimeException('AUTH_TOKEN_INVALID');
         }
 
-        if (empty($claims['sub'])) {
+        if (empty($claims['sub']) || empty($claims['jti'])) {
             throw new RuntimeException('AUTH_TOKEN_INVALID');
         }
 
@@ -53,7 +54,7 @@ final class JwtTokenService implements TokenServiceInterface
 
     public function revoke_access_token(string $token): void
     {
-        // JWT verification is stateless. Revocation is handled by the token/session store.
+        // Access-token revocation is enforced through the associated session.
     }
 
     private function secret(): string
