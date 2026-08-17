@@ -32,7 +32,15 @@ add_action('iran_lms/register_modules', static function ($registry): void {
     $registry->register(new \IranLMS\Modules\Courses\CoursesModule());
 });
 
+add_action('iran_lms/register_services', static function ($container): void {
+    $runner = $container->get(\IranLMS\Infrastructure\Database\MigrationRunner::class);
+    $database = $container->get(\IranLMS\Infrastructure\Database\DatabaseManager::class);
+
+    $runner->add(new \IranLMS\Modules\Auth\Database\Migrations\Version1100CreateAuthTables($database));
+});
+
 add_action('iran_lms/booted', static function ($plugin): void {
+    $plugin->container()->get(\IranLMS\Infrastructure\Database\MigrationRunner::class)->migrate();
     (new \IranLMS\API\ApiRegistrar($plugin->container()))->register();
 });
 
